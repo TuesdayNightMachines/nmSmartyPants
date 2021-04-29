@@ -1,17 +1,20 @@
 -- nmSmartyPants
--- 0.0.3 @NightMachines
+-- 0.0.4 @NightMachines
 -- llllllll.co/t/nmsmartypants/
 --
 -- if you regularly fail at
 -- elementary school level math
 -- then this script is for you
 --
--- K1: hold for value turbo
+-- K1: hold for /alt controls
 -- E1: select operator/number
 -- K2: randomize r formula
+--     /reset r formula
 -- K3: randomize p formula
--- E2: dry/wet
--- E3: change selected value
+--     /reset p formula
+-- E2: dry wet mix
+-- E3: change value by 0.1
+--     /change value by 1.0
 
 
 -- _norns.screen_export_png("/home/we/dust/nmSmartyPants.png")
@@ -212,6 +215,14 @@ function randomizer(x)
     for i=8,12,2 do
       params:set(ids[i],math.random(-100,100)/2)
     end
+  elseif x == "rr" then -- reset r values
+    for i=1,6 do
+      params:set(ids[i],1)
+    end
+  elseif x == "pr" then -- reset p values
+    for i=7,12 do
+      params:set(ids[i],1)
+    end
   end
 end
 
@@ -226,10 +237,18 @@ function key(id,st)
     end
   elseif id==2 and st==1 then
     msgOn = 0
-    randomizer("r")
+    if k1held==1 then
+      randomizer("rr") --reset
+    else
+      randomizer("r")
+    end
   elseif id==3 and st==1 then
     msgOn = 0
-    randomizer("p")  
+    if k1held==1 then
+      randomizer("pr")  --reset
+    else
+      randomizer("p")  
+    end
   end
 end
 
@@ -245,8 +264,13 @@ function enc(id,delta)
     if k1held ==1 then
       params:delta(ids[params:get("sel")],delta)
     else
-      params:delta(ids[params:get("sel")],delta/10)
+      params:delta(ids[params:get("sel")],round(delta)/10)
     end
+    if params:get(ids[params:get("sel")])<0.1 and params:get(ids[params:get("sel")])>-0.1 then
+      params:set(ids[params:get("sel")],0)
+    else
+      params:set(ids[params:get("sel")],round(params:get(ids[params:get("sel")])*100)/100)
+    end 
 end
 end
 
@@ -411,7 +435,7 @@ function round(n)
 end
 
 local messages = {
-  "Looking good today.",
+  "You're looking good today.",
   "Twist those knobs!",
   "Interesting choice.",
   "What a nice sound.",
@@ -430,15 +454,26 @@ local messages = {
   "The teachers would be proud.",
   "Well done!",
   "Uuuh, goosebumps!",
-  "Shake that booty!", --20
-  ""
+  "Shake it!", --20
+  "Have you ever modeled?",
+  "You're a smart one!",
+  "Such soft fingers!",
+  "Oh yeah!",
+  "Crunch those numbers!",
+  "You should get a PHD.",
+  "I see you and me likey.",
+  "Gimme a kiss!",
+  "You're a pretty one!",
+  "You're my favorite.",
+  "You raise my numbers.",
+  "Ask me about Loom."
 }
 
 
 function msgMe()
   if msgOn == 1 then
-    local randmonn = math.random(1,250)
-    if randmonn <=2 then
+    local randmonn = math.random(1,750)
+    if randmonn ==1 then
       message = messages[math.random(1,#messages)]
     end
   end
