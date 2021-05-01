@@ -1,5 +1,5 @@
 -- nmSmartyPants
--- 0.0.4 @NightMachines
+-- 0.0.5 @NightMachines
 -- llllllll.co/t/nmsmartypants/
 --
 -- if you regularly fail at
@@ -26,7 +26,7 @@
 --norns.enc.accel(0,false)
 
 local devices = {}
-local ops = {"+","-","*","/","%"}
+local ops = {"+","-","*","/","%","^"}
 local vPos = 0
 local rResult = 0 -- record result
 local pResult = 0--- play result
@@ -38,6 +38,7 @@ local tape = {}
 local k1held = 0
 local message = "nmSmartyPants"
 local msgOn = 1
+local onOff =  {"off", "on"}
 
 function init()
   for id,device in pairs(midi.vports) do
@@ -48,7 +49,7 @@ function init()
     tape[i] = 1
   end
   
-  params:add_group("nmMathProblem",13)
+  params:add_group("nmSmartyPants",21)
   
   params:add{type = "option", id = "midi_input", name = "Midi Input", options = devices, default = 1, action=set_midi_input}
 
@@ -71,9 +72,12 @@ function init()
   params:add{type = "option", id = ids[9], name = "Operator 5", options = ops, default = 5}
   params:add{type = "number", id = ids[10], name = "Number 5", min = -100, max = 100, default = 6, wrap = false, action=function(x) msgMe() end} 
   params:add{type = "option", id = ids[11], name = "Operator 6", options = ops, default = 1}
-  params:add{type = "number", id = ids[12], name = "Number 6", min = -100, max = 100, default = 47, wrap = false, action=function(x) msgMe() end} 
+  params:add{type = "number", id = ids[12], name = "Number 6", min = -100, max = 100, default = 47, wrap = false, action=function(x) end} 
   
-  --params:add_control("vLen1","Cloud 1 Altitude", controlspec.new(0.1,4.1,"lin",0.1,1.0,"",0.025,false))
+  params:add_separator("Encoders")
+  params:add{type = "number", id = "encSens", name = "Encoder Sensitivity", min = 1, max = 16, default = 0, wrap = false, action=function(x) norns.enc.sens(0,x) end} 
+  params:add{type = "option", id = "encAccel", name = "Encoder Acceleration", options = onOff, default = 1, wrap = false, action=function(x) if x==0 then norns.enc.accel(0,false) else norns.enc.accel(0,true) end end} 
+  
   
   
   softcut.buffer_clear()
@@ -164,6 +168,9 @@ function rfOp(o,v) -- o=operator number, v=value to calculate with
       elseif params:get("op"..o) == 5 then -- %
         pcall(function() rRes = rRes%params:get("no"..o) end)
         rfOp(o+1,rRes)
+      elseif params:get("op"..o) == 6 then -- exp
+        pcall(function() rRes = rRes^params:get("no"..o) end)
+        rfOp(o+1,rRes)
       end
     end
 end
@@ -184,6 +191,9 @@ function pfOp(o,v) -- o=operator number, v=value to calculate with
         pfOp(o+1,pRes)
       elseif params:get("op"..o) == 5 then -- %
         pcall(function() pRes = pRes%params:get("no"..o) end)
+        pfOp(o+1,pRes)
+      elseif params:get("op"..o) == 6 then -- exp
+        pcall(function() pRes = pRes^params:get("no"..o) end)
         pfOp(o+1,pRes)
       end
     end
@@ -315,7 +325,7 @@ function redraw()
     if i%2==0 then --if even id number then number
       screen.text(" "..params:get(ids[i]))
     else --- if odd id number then operator
-      screen.text(" "..ops[params:get(ids[i])] )
+      screen.text(" "..ops[params:get(ids[i])])
     end
   end
   
@@ -450,8 +460,8 @@ local messages = {
   "Fantastic!",
   "You've got cute ears.",
   "Lovely :)",
-  "You know some numbers!",
-  "The teachers would be proud.",
+  "You know numbers!",
+  "Your teachers would be proud.",
   "Well done!",
   "Uuuh, goosebumps!",
   "Shake it!", --20
@@ -466,13 +476,22 @@ local messages = {
   "You're a pretty one!",
   "You're my favorite.",
   "You raise my numbers.",
-  "Ask me about Loom."
+  "Ask me about Loom.",
+  "You seem quite smart.",
+  "More of that, please!",
+  "You're a natural!",
+  "I like this ... a lot!",
+  "More! More! More!",
+  "Keep it going!",
+  "encouragement_msg_25",
+  "Love watching you.",
+  "Now that's something!"
 }
 
 
 function msgMe()
   if msgOn == 1 then
-    local randmonn = math.random(1,750)
+    local randmonn = math.random(1,600)
     if randmonn ==1 then
       message = messages[math.random(1,#messages)]
     end
