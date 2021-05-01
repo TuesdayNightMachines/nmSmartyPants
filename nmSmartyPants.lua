@@ -147,7 +147,7 @@ function updatePos(v,p) -- v = voice, p = position
   pfOp(round(opCount/2)+1,pRes)
   pResult = round((pRes%100)*100)/100
   softcut.position(2,pResult)
-  softcut.pan(2,((pResult/50)-1)*-1)
+  softcut.pan(2,(pResult/50)-1)
 
 end
 
